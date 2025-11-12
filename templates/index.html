@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>پردازش تصویر</title>
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap-custom.css' %}">
+</head>
+<body>
+<nav class="navbar bg-body-tertiary shadow py-3">
+    <div class="container-fluid justify-content-center">
+        <h2 class="">
+            تمرینات پردازش تصویر
+        </h2>
+    </div>
+</nav>
+<div class="p-5">
+    <h5 class="text-center">فیلتر میانه (median blur)</h5>
+    <h3>آپلود تصویر</h3>
+    <form id="imageForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image" id="imageInput" required>
+        <button type="submit" class="btn btn-primary mt-2">ارسال و پردازش</button>
+    </form>
+
+    <hr>
+    <div class="container">
+        <div class="row">
+            <div class="mt-4 col-6">
+                <h5>پیش‌نمایش تصویر انتخاب شده:</h5>
+                <img id="previewOriginal" style="max-width:300px;" src="">
+            </div>
+            <div class="mt-4  col-6">
+                <h5>تصویر پردازش شده:</h5>
+                <img id="processedImage" style="max-width:300px;" src="">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="{% static 'assets/js/jquery.min.js' %}"></script>
+<script>
+    $(document).ready(function () {
+        // نمایش تصویر انتخاب شده بلافاصله روی مرورگر
+        $("#imageInput").on("change", function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#previewOriginal").attr("src", e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ارسال تصویر به سرور و دریافت تصویر پردازش شده
+        $("#imageForm").on("submit", function (e) {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+            $.ajax({
+                url: "{% url 'main:median_blur_view' %}",  // URL view Django
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $("#processedImage").attr("src", "data:image/jpeg;base64," + response.processed_image);
+                },
+                error: function (err) {
+                    alert("خطا در ارسال تصویر!");
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
