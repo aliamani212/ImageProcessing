@@ -37,12 +37,35 @@
         </div>
     </div>
 
+    <hr>
+
+    <h5 class="text-center">فیلتر گوسی (Gaussian blur)</h5>
+    <h3>آپلود تصویر</h3>
+    <form id="imageFormGaussian" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image" id="imageInputGaussian" required>
+        <button type="submit" class="btn btn-primary mt-2">ارسال و پردازش</button>
+    </form>
+
+    <hr>
+    <div class="container">
+        <div class="row">
+            <div class="mt-4 col-6">
+                <h5>پیش‌نمایش تصویر انتخاب شده:</h5>
+                <img id="previewOriginalGaussian" style="max-width:300px;" src="">
+            </div>
+            <div class="mt-4  col-6">
+                <h5>تصویر پردازش شده:</h5>
+                <img id="processedImageGaussian" style="max-width:300px;" src="">
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="{% static 'assets/js/jquery.min.js' %}"></script>
 <script>
     $(document).ready(function () {
-        // نمایش تصویر انتخاب شده بلافاصله روی مرورگر
+        // نمایش تصویر انتخاب شده بلافاصله روی مرورگر - فیلتر میانه
         $("#imageInput").on("change", function () {
             const file = this.files[0];
             if (file) {
@@ -54,7 +77,7 @@
             }
         });
 
-        // ارسال تصویر به سرور و دریافت تصویر پردازش شده
+        // ارسال تصویر به سرور و دریافت تصویر پردازش شده - فیلتر میانه
         $("#imageForm").on("submit", function (e) {
             e.preventDefault();
 
@@ -67,6 +90,38 @@
                 contentType: false,
                 success: function (response) {
                     $("#processedImage").attr("src", "data:image/jpeg;base64," + response.processed_image);
+                },
+                error: function (err) {
+                    alert("خطا در ارسال تصویر!");
+                }
+            });
+        });
+
+        // نمایش تصویر انتخاب شده بلافاصله روی مرورگر - فیلتر گوسی
+        $("#imageInputGaussian").on("change", function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#previewOriginalGaussian").attr("src", e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ارسال تصویر به سرور و دریافت تصویر پردازش شده - فیلتر گوسی
+        $("#imageFormGaussian").on("submit", function (e) {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+            $.ajax({
+                url: "{% url 'main:gaussian_blur_view' %}",  // URL view Django برای فیلتر گوسی
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $("#processedImageGaussian").attr("src", "data:image/jpeg;base64," + response.processed_image);
                 },
                 error: function (err) {
                     alert("خطا در ارسال تصویر!");
